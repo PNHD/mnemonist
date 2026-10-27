@@ -113,16 +113,26 @@ MultiSet.prototype.set = function(item, count) {
   count = count || 1;
 
   currentCount = this.items.get(item);
+  this.items.set(item, count);
 
   if (typeof currentCount === 'number') {
-    this.items.set(item, currentCount + count);
+    if (currentCount !== count) {
+      if (count < currentCount && !isFinite(this.size)) {
+        // A nonfinite total cannot be adjusted by subtracting a contribution.
+        this.size = 0;
+        this.items.forEach(function(multiplicity) {
+          this.size += multiplicity;
+        }, this);
+      }
+      else {
+        this.size = this.size - currentCount + count;
+      }
+    }
   }
   else {
     this.dimension++;
-    this.items.set(item, count);
+    this.size += count;
   }
-
-  this.size += count;
 
   return this;
 };

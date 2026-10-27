@@ -169,6 +169,54 @@ describe('MultiSet', function() {
     assert.strictEqual(set.has('hello'), false);
   });
 
+  it('should replace the multiplicity of an existing item.', function() {
+    var set = new MultiSet();
+
+    set.add('a', 7);
+    set.add('b', 3);
+
+    [2, 5, 5].forEach(function(count, i) {
+      assert.strictEqual(set.set('a', count), set);
+      assert.strictEqual(set.multiplicity('a'), count);
+      assert.strictEqual(set.multiplicity('b'), 3);
+      assert.strictEqual(set.size, [5, 8, 8][i]);
+      assert.strictEqual(set.dimension, 2);
+      assert.deepStrictEqual(Array.from(set.multiplicities()), [['a', count], ['b', 3]]);
+    });
+  });
+
+  it('should keep the size when setting an infinite multiplicity to itself.', function() {
+    var set = new MultiSet();
+
+    set.add('a', Infinity);
+    set.set('a', Infinity);
+
+    assert.strictEqual(set.multiplicity('a'), Infinity);
+    assert.strictEqual(set.size, Infinity);
+  });
+
+  it('should update the size when replacing large or infinite multiplicities.', function() {
+    [
+      [1e16, 0, 1, 1],
+      [Infinity, 0, 2, 2],
+      [Infinity, 3, 2, 5],
+      [Infinity, Infinity, 2, Infinity],
+      [Number.MAX_VALUE, Number.MAX_VALUE, 2, Number.MAX_VALUE]
+    ].forEach(function(test) {
+      var set = new MultiSet();
+
+      set.add('a', test[0]);
+      if (test[1])
+        set.add('b', test[1]);
+      set.set('a', test[2]);
+
+      assert.strictEqual(set.multiplicity('a'), test[2]);
+      assert.strictEqual(set.multiplicity('b'), test[1]);
+      assert.strictEqual(set.size, test[3]);
+      assert.strictEqual(set.dimension, test[1] ? 2 : 1);
+    });
+  });
+
   it('should be possible to edit a key from the set.', function() {
     var set = new MultiSet();
 
